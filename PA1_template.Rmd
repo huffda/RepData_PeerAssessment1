@@ -7,15 +7,46 @@ output:
 
 
 ## Loading and preprocessing the data
+```{r}
+library(dplyr)
+library(ggplot2)
 
+fitdata <- read.csv("activity.csv")
 
+## date = as.Date(date, "%Y-%m-%d"), 
+d <- as.Date(Sys.time())
+fitdata <- mutate(fitdata, interval = 60 * floor(interval/100) + interval - 100 * floor(interval/100),
+    date = as.Date(date, "%F"), fulldate = strptime(date + minutes(interval), "%I:%M %p"))
+```
 
+https://api.github.com/users/jtleek/repos
 ## What is mean total number of steps taken per day?
+```{r}
+stepsPerDay <- group_by(fitdata, date) %>% 
+        summarize("dailysteps" = sum(steps))
 
+h <- ggplot(stepsPerDay, aes(dailysteps)) + geom_histogram(binwidth = 1500)
+h
+
+avgDailySteps <- mean(stepsPerDay$"dailysteps", na.rm = 1)
+medDailySteps <- median(stepsPerDay$"dailysteps", na.rm = 1)
+
+avgDailySteps
+medDailySteps
+```
 
 
 ## What is the average daily activity pattern?
+```{r}
+avgSteps5min <- group_by(fitdata, interval) %>%
+        na.omit() %>%
+        summarize("avg5minInt" = mean(steps))
 
+t <- ggplot(avgSteps5min, aes(interval, avg5minInt)) + geom_line()
+t
+
+maxInt <- arrange(avgSteps5min, desc(avg5minInt)) %>% avgSteps5min[1,1]
+```
 
 
 ## Imputing missing values
