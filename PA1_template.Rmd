@@ -48,8 +48,11 @@ t
 
 The 5-minute interval that, on average, contains the maximum number of steps:
 ``` {r}
-maxInt <- summarize(avgSteps5min, max(avg5minInt))
-as.numeric(maxInt)
+maxSteps <- summarize(avgSteps5min, maxi = max(avg5minInt))
+maxInt <- as.numeric(filter(avgSteps5min, avg5minInt == as.numeric(maxSteps)) %>% select(interval))
+quotient <- maxInt %/% 60
+remainder <- maxInt %% 60
+paste(quotient, remainder, sep=":")
 ```
 
 
@@ -86,4 +89,22 @@ Median number of steps taken each day (NAs replaced with time period average):
 ``` {r}
 medDailyStepsnoNA
 ```
+
+
+Note that while the mean is unchanged from the case where we ignore the missing data, the median has changede, due to the affect of additional data points.
+
+
 ## Are there differences in activity patterns between weekdays and weekends?
+``` {r}
+filledData$weekperiod <- ifelse(wday(filledData$date) %in% c(1, 7), "Weekend", "Weekday")
+```
+
+
+## What are the average weekday and weekend activity patterns?
+Plots of avg steps per 5 minute interval broken down by weekdays and weekends:
+```{r} 
+avgSteps5minW <- group_by(filledData, weekperiod, interval) %>% summarize("avg5minInt" = mean(steps))
+
+t <- ggplot(avgSteps5minW, aes(interval, avg5minInt, group = weekperiod)) + facet_wrap(~weekperiod, 2, 1) + geom_line()
+t
+```
