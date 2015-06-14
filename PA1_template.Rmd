@@ -1,56 +1,89 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+--- title: "Reproducible Research: Peer Assessment 1" output: html_document: 
+keep_md: true ---
 
 
-## Loading and preprocessing the data
-```{r}
-library(dplyr)
-library(ggplot2)
+## Loading and preprocessing the data 
+```{r} 
+library(dplyr) 
+library(ggplot2) 
+library(lubridate)
 
 fitdata <- read.csv("activity.csv")
 
-## date = as.Date(date, "%Y-%m-%d"), 
-d <- as.Date(Sys.time())
-fitdata <- mutate(fitdata, interval = 60 * floor(interval/100) + interval - 100 * floor(interval/100),
-    date = as.Date(date, "%F"), fulldate = strptime(date + minutes(interval), "%I:%M %p"))
+fitdata <- mutate(fitdata, interval = 60 * floor(interval/100) + interval - 100 *                      floor(interval/100), datetime = ymd(date) + 60*interval) 
 ```
 
-https://api.github.com/users/jtleek/repos
-## What is mean total number of steps taken per day?
-```{r}
-stepsPerDay <- group_by(fitdata, date) %>% 
-        summarize("dailysteps" = sum(steps))
+## What is mean total number of steps taken per day? 
+```{r} 
+stepsPerDay <- group_by(fitdata, date) %>% summarize("dailysteps" = sum(steps))
 
-h <- ggplot(stepsPerDay, aes(dailysteps)) + geom_histogram(binwidth = 1500)
+h <- ggplot(stepsPerDay, aes(dailysteps)) + geom_histogram(binwidth = 1500) 
 h
 
 avgDailySteps <- mean(stepsPerDay$"dailysteps", na.rm = 1)
 medDailySteps <- median(stepsPerDay$"dailysteps", na.rm = 1)
+```
 
-avgDailySteps
-medDailySteps
+Mean number of steps taken each day:
+``` {r}
+avgDailySteps 
+```
+
+Median number of steps taken each day:
+``` {r}
+medDailySteps 
 ```
 
 
-## What is the average daily activity pattern?
-```{r}
+## What is the average daily activity pattern? 
+```{r} 
 avgSteps5min <- group_by(fitdata, interval) %>%
-        na.omit() %>%
-        summarize("avg5minInt" = mean(steps))
+  na.omit() %>%
+  summarize("avg5minInt" = mean(steps))
 
 t <- ggplot(avgSteps5min, aes(interval, avg5minInt)) + geom_line()
 t
+```
 
-maxInt <- arrange(avgSteps5min, desc(avg5minInt)) %>% avgSteps5min[1,1]
+
+The 5-minute interval that, on average, contains the maximum number of steps:
+``` {r}
+maxInt <- summarize(avgSteps5min, max(avg5minInt))
+as.numeric(maxInt)
 ```
 
 
 ## Imputing missing values
+The total number of periods with missing step data is:
+``` {r}
+sum(!complete.cases(fitdata))
+
+filledData <- arrange(left_join(fitdata, avgSteps5min), datetime)
+bad <- is.na(filledData$steps)
+filledData[bad,"steps"] <- filledData[bad, "avg5minInt"]
+filledData <- select(filledData, steps:interval)
+```
 
 
+```{r} 
+stepsPerDaynoNA <- group_by(filledData, date) %>% summarize("dailysteps" = sum(steps))
 
+h <- ggplot(stepsPerDaynoNA, aes(dailysteps)) + geom_histogram(binwidth = 1500) 
+h
+
+avgDailyStepsnoNA <- mean(stepsPerDaynoNA$"dailysteps", na.rm = 1)
+medDailyStepsnoNA <- median(stepsPerDaynoNA$"dailysteps", na.rm = 1)
+```
+
+
+Mean number of steps taken each day (NAs replaced with time period average):
+``` {r}
+avgDailyStepsnoNA
+```
+
+
+Median number of steps taken each day (NAs replaced with time period average):
+``` {r}
+medDailyStepsnoNA
+```
 ## Are there differences in activity patterns between weekdays and weekends?
