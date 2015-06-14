@@ -91,6 +91,8 @@ sum(!complete.cases(fitdata))
 ## [1] 2304
 ```
 
+My strategy to fill in the missing data is to use the 5 min interval average to submit in place of NA, which is accomllished by this code:
+
 ```r
 filledData <- arrange(left_join(fitdata, avgSteps5min), datetime)
 ```
@@ -114,7 +116,7 @@ h <- ggplot(stepsPerDaynoNA, aes(dailysteps)) + geom_histogram(binwidth = 1500)
 h
 ```
 
-![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8-1.png) 
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
 
 ```r
 avgDailyStepsnoNA <- mean(stepsPerDaynoNA$"dailysteps", na.rm = 1)
@@ -164,4 +166,4 @@ t <- ggplot(avgSteps5minW, aes(interval, avg5minInt, group = weekperiod)) + face
 t
 ```
 
-![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12-1.png) 
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png) 

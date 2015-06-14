@@ -60,7 +60,10 @@ paste(quotient, remainder, sep=":")
 The total number of periods with missing step data is:
 ``` {r}
 sum(!complete.cases(fitdata))
+```
 
+My strategy to fill in the missing data is to use the 5 min interval average to submit in place of NA, which is accomllished by this code:
+``` {r}
 filledData <- arrange(left_join(fitdata, avgSteps5min), datetime)
 bad <- is.na(filledData$steps)
 filledData[bad,"steps"] <- filledData[bad, "avg5minInt"]
